@@ -1,0 +1,90 @@
+{
+  "Comment": "PDF Audiobook Processing Pipeline",
+  "StartAt": "ExtractTextTask",
+  "States": {
+    "ExtractTextTask": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "${ExtractTextFunction}",
+        "Payload.$": "$"
+      },
+      "Next": "ExtractFiguresTask"
+    },
+    "ExtractFiguresTask": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "${ExtractFiguresFunction}",
+        "Payload.$": "$"
+      },
+      "Next": "SemanticSegmentationTask"
+    },
+    "SemanticSegmentationTask": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "${SemanticSegmentationFunction}",
+        "Payload.$": "$"
+      },
+      "Next": "BeatSynthesisTask"
+    },
+    "BeatSynthesisTask": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "${BeatSynthesisFunction}",
+        "Payload.$": "$"
+      },
+      "Next": "UserApprovalWaitTask"
+    },
+    "UserApprovalWaitTask": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke.waitForTaskToken",
+      "Parameters": {
+        "FunctionName": "${UserApprovalFunction}",
+        "Payload": {
+          "taskToken.$": "$$.Task.Token",
+          "input.$": "$"
+        }
+      },
+      "Next": "GenerateLectureScriptTask"
+    },
+    "GenerateLectureScriptTask": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "${GenerateLectureScriptFunction}",
+        "Payload.$": "$"
+      },
+      "Next": "VerifyScriptsTask"
+    },
+    "VerifyScriptsTask": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "${VerifyScriptsFunction}",
+        "Payload.$": "$"
+      },
+      "Next": "SynthesizeAudioTask"
+    },
+    "SynthesizeAudioTask": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "${SynthesizeAudioFunction}",
+        "Payload.$": "$"
+      },
+      "Next": "FinalizeTask"
+    },
+    "FinalizeTask": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "${FinalizeFunction}",
+        "Payload.$": "$"
+      },
+      "End": true
+    }
+  }
+}

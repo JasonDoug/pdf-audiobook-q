@@ -1,0 +1,520 @@
+{
+  "Resources": {
+    "StepFunctionsRole575CBBE2": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "states.amazonaws.com"
+              }
+            }
+          ],
+          "Version": "2012-10-17"
+        },
+        "Policies": [
+          {
+            "PolicyDocument": {
+              "Statement": [
+                {
+                  "Action": "lambda:InvokeFunction",
+                  "Effect": "Allow",
+                  "Resource": [
+                    {
+                      "Fn::ImportValue": "PdfAudiobookLambdaStack:ExportsOutputFnGetAttExtractTextFunctionEEC7C314Arn1754CBE0"
+                    },
+                    {
+                      "Fn::ImportValue": "PdfAudiobookLambdaStack:ExportsOutputFnGetAttExtractFiguresFunction15AC969BArn7345BA59"
+                    },
+                    {
+                      "Fn::ImportValue": "PdfAudiobookLambdaStack:ExportsOutputFnGetAttSemanticSegmentationFunctionCBB65BDAArn9F9EAE65"
+                    },
+                    {
+                      "Fn::ImportValue": "PdfAudiobookLambdaStack:ExportsOutputFnGetAttBeatSynthesisFunction152DB3F5ArnEA07FD2B"
+                    },
+                    {
+                      "Fn::ImportValue": "PdfAudiobookLambdaStack:ExportsOutputFnGetAttUserApprovalFunction5A038BB5ArnA514109B"
+                    },
+                    {
+                      "Fn::ImportValue": "PdfAudiobookLambdaStack:ExportsOutputFnGetAttGenerateLectureScriptFunction665C6FE0Arn3A9D4FFB"
+                    },
+                    {
+                      "Fn::ImportValue": "PdfAudiobookLambdaStack:ExportsOutputFnGetAttVerifyScriptsFunctionBD9C1612Arn7878793C"
+                    },
+                    {
+                      "Fn::ImportValue": "PdfAudiobookLambdaStack:ExportsOutputFnGetAttSynthesizeAudioFunction7BF115C2Arn85E77FA5"
+                    },
+                    {
+                      "Fn::ImportValue": "PdfAudiobookLambdaStack:ExportsOutputFnGetAttFinalizeFunction2E2E0FC2Arn7153F5BA"
+                    }
+                  ]
+                }
+              ],
+              "Version": "2012-10-17"
+            },
+            "PolicyName": "LambdaInvoke"
+          }
+        ]
+      }
+    },
+    "OrchestratorStateMachine3134990F": {
+      "Type": "AWS::StepFunctions::StateMachine",
+      "Properties": {
+        "DefinitionString": {
+          "Fn::Join": [
+            "",
+            [
+              "{\"Comment\":\"PDF Audiobook Processing Pipeline\",\"StartAt\":\"ExtractTextTask\",\"States\":{\"ExtractTextTask\":{\"Type\":\"Task\",\"Resource\":\"arn:aws:states:::lambda:invoke\",\"Parameters\":{\"FunctionName\":\"",
+              {
+                "Fn::ImportValue": "PdfAudiobookLambdaStack:ExportsOutputFnGetAttExtractTextFunctionEEC7C314Arn1754CBE0"
+              },
+              "\",\"Payload.$\":\"$\"},\"Next\":\"ExtractFiguresTask\"},\"ExtractFiguresTask\":{\"Type\":\"Task\",\"Resource\":\"arn:aws:states:::lambda:invoke\",\"Parameters\":{\"FunctionName\":\"",
+              {
+                "Fn::ImportValue": "PdfAudiobookLambdaStack:ExportsOutputFnGetAttExtractFiguresFunction15AC969BArn7345BA59"
+              },
+              "\",\"Payload.$\":\"$\"},\"Next\":\"SemanticSegmentationTask\"},\"SemanticSegmentationTask\":{\"Type\":\"Task\",\"Resource\":\"arn:aws:states:::lambda:invoke\",\"Parameters\":{\"FunctionName\":\"",
+              {
+                "Fn::ImportValue": "PdfAudiobookLambdaStack:ExportsOutputFnGetAttSemanticSegmentationFunctionCBB65BDAArn9F9EAE65"
+              },
+              "\",\"Payload.$\":\"$\"},\"Next\":\"BeatSynthesisTask\"},\"BeatSynthesisTask\":{\"Type\":\"Task\",\"Resource\":\"arn:aws:states:::lambda:invoke\",\"Parameters\":{\"FunctionName\":\"",
+              {
+                "Fn::ImportValue": "PdfAudiobookLambdaStack:ExportsOutputFnGetAttBeatSynthesisFunction152DB3F5ArnEA07FD2B"
+              },
+              "\",\"Payload.$\":\"$\"},\"Next\":\"UserApprovalWaitTask\"},\"UserApprovalWaitTask\":{\"Type\":\"Task\",\"Resource\":\"arn:aws:states:::lambda:invoke.waitForTaskToken\",\"Parameters\":{\"FunctionName\":\"",
+              {
+                "Fn::ImportValue": "PdfAudiobookLambdaStack:ExportsOutputFnGetAttUserApprovalFunction5A038BB5ArnA514109B"
+              },
+              "\",\"Payload\":{\"taskToken.$\":\"$$.Task.Token\",\"input.$\":\"$\"}},\"Next\":\"GenerateLectureScriptTask\"},\"GenerateLectureScriptTask\":{\"Type\":\"Task\",\"Resource\":\"arn:aws:states:::lambda:invoke\",\"Parameters\":{\"FunctionName\":\"",
+              {
+                "Fn::ImportValue": "PdfAudiobookLambdaStack:ExportsOutputFnGetAttGenerateLectureScriptFunction665C6FE0Arn3A9D4FFB"
+              },
+              "\",\"Payload.$\":\"$\"},\"Next\":\"VerifyScriptsTask\"},\"VerifyScriptsTask\":{\"Type\":\"Task\",\"Resource\":\"arn:aws:states:::lambda:invoke\",\"Parameters\":{\"FunctionName\":\"",
+              {
+                "Fn::ImportValue": "PdfAudiobookLambdaStack:ExportsOutputFnGetAttVerifyScriptsFunctionBD9C1612Arn7878793C"
+              },
+              "\",\"Payload.$\":\"$\"},\"Next\":\"SynthesizeAudioTask\"},\"SynthesizeAudioTask\":{\"Type\":\"Task\",\"Resource\":\"arn:aws:states:::lambda:invoke\",\"Parameters\":{\"FunctionName\":\"",
+              {
+                "Fn::ImportValue": "PdfAudiobookLambdaStack:ExportsOutputFnGetAttSynthesizeAudioFunction7BF115C2Arn85E77FA5"
+              },
+              "\",\"Payload.$\":\"$\"},\"Next\":\"FinalizeTask\"},\"FinalizeTask\":{\"Type\":\"Task\",\"Resource\":\"arn:aws:states:::lambda:invoke\",\"Parameters\":{\"FunctionName\":\"",
+              {
+                "Fn::ImportValue": "PdfAudiobookLambdaStack:ExportsOutputFnGetAttFinalizeFunction2E2E0FC2Arn7153F5BA"
+              },
+              "\",\"Payload.$\":\"$\"},\"End\":true}}}"
+            ]
+          ]
+        },
+        "RoleArn": {
+          "Fn::GetAtt": [
+            "StepFunctionsRole575CBBE2",
+            "Arn"
+          ]
+        }
+      },
+      "DependsOn": [
+        "StepFunctionsRole575CBBE2"
+      ],
+      "UpdateReplacePolicy": "Delete",
+      "DeletionPolicy": "Delete"
+    },
+    "ApiFunctionServiceRole52B9747B": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com"
+              }
+            }
+          ],
+          "Version": "2012-10-17"
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition"
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+              ]
+            ]
+          }
+        ]
+      }
+    },
+    "ApiFunctionServiceRoleDefaultPolicy20A32B8D": {
+      "Type": "AWS::IAM::Policy",
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "states:StartExecution",
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "OrchestratorStateMachine3134990F"
+              }
+            },
+            {
+              "Action": [
+                "dynamodb:BatchGetItem",
+                "dynamodb:GetRecords",
+                "dynamodb:GetShardIterator",
+                "dynamodb:Query",
+                "dynamodb:GetItem",
+                "dynamodb:Scan",
+                "dynamodb:ConditionCheckItem",
+                "dynamodb:BatchWriteItem",
+                "dynamodb:PutItem",
+                "dynamodb:UpdateItem",
+                "dynamodb:DeleteItem",
+                "dynamodb:DescribeTable"
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::ImportValue": "PdfAudiobookCoreStack:ExportsOutputFnGetAttJobsTable1970BC16ArnC40C1624"
+                },
+                {
+                  "Ref": "AWS::NoValue"
+                }
+              ]
+            }
+          ],
+          "Version": "2012-10-17"
+        },
+        "PolicyName": "ApiFunctionServiceRoleDefaultPolicy20A32B8D",
+        "Roles": [
+          {
+            "Ref": "ApiFunctionServiceRole52B9747B"
+          }
+        ]
+      }
+    },
+    "ApiFunctionCE271BD4": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "ZipFile": {
+            "Fn::Join": [
+              "",
+              [
+                "\nimport json\nimport boto3\n\nstepfunctions = boto3.client('stepfunctions')\ndynamodb = boto3.resource('dynamodb')\ntable = dynamodb.Table('",
+                {
+                  "Fn::ImportValue": "PdfAudiobookCoreStack:ExportsOutputRefJobsTable1970BC16EDB4A824"
+                },
+                "')\n\ndef handler(event, context):\n    method = event['requestContext']['http']['method']\n    path = event['requestContext']['http']['path']\n    \n    if method == 'POST' and path == '/upload':\n        # Start Step Functions execution\n        response = stepfunctions.start_execution(\n            stateMachineArn='",
+                {
+                  "Ref": "OrchestratorStateMachine3134990F"
+                },
+                "',\n            input=json.dumps(event.get('body', {}))\n        )\n        return {'statusCode': 200, 'body': json.dumps({'executionArn': response['executionArn']})}\n    \n    elif method == 'GET' and '/job/' in path:\n        job_id = path.split('/job/')[1]\n        response = table.get_item(Key={'id': job_id})\n        return {'statusCode': 200, 'body': json.dumps(response.get('Item', {}))}\n    \n    elif method == 'POST' and '/approve' in path:\n        # Handle beat approval\n        return {'statusCode': 200, 'body': json.dumps({'message': 'Approved'})}\n    \n    return {'statusCode': 404, 'body': json.dumps({'error': 'Not found'})}\n      "
+              ]
+            ]
+          }
+        },
+        "Environment": {
+          "Variables": {
+            "STATE_MACHINE_ARN": {
+              "Ref": "OrchestratorStateMachine3134990F"
+            },
+            "TABLE_NAME": {
+              "Fn::ImportValue": "PdfAudiobookCoreStack:ExportsOutputRefJobsTable1970BC16EDB4A824"
+            }
+          }
+        },
+        "Handler": "index.handler",
+        "Role": {
+          "Fn::GetAtt": [
+            "ApiFunctionServiceRole52B9747B",
+            "Arn"
+          ]
+        },
+        "Runtime": "python3.9"
+      },
+      "DependsOn": [
+        "ApiFunctionServiceRoleDefaultPolicy20A32B8D",
+        "ApiFunctionServiceRole52B9747B"
+      ]
+    },
+    "PdfAudiobookApiA4263288": {
+      "Type": "AWS::ApiGatewayV2::Api",
+      "Properties": {
+        "Name": "PdfAudiobookApi",
+        "ProtocolType": "HTTP"
+      }
+    },
+    "PdfAudiobookApiDefaultStage9970012A": {
+      "Type": "AWS::ApiGatewayV2::Stage",
+      "Properties": {
+        "ApiId": {
+          "Ref": "PdfAudiobookApiA4263288"
+        },
+        "AutoDeploy": true,
+        "StageName": "$default"
+      }
+    },
+    "PdfAudiobookApiPOSTuploadApiIntegrationAD2B5766": {
+      "Type": "AWS::ApiGatewayV2::Integration",
+      "Properties": {
+        "ApiId": {
+          "Ref": "PdfAudiobookApiA4263288"
+        },
+        "IntegrationType": "AWS_PROXY",
+        "IntegrationUri": {
+          "Fn::GetAtt": [
+            "ApiFunctionCE271BD4",
+            "Arn"
+          ]
+        },
+        "PayloadFormatVersion": "2.0"
+      }
+    },
+    "PdfAudiobookApiPOSTuploadApiIntegrationPermission32D015F5": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "ApiFunctionCE271BD4",
+            "Arn"
+          ]
+        },
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition"
+              },
+              ":execute-api:",
+              {
+                "Ref": "AWS::Region"
+              },
+              ":",
+              {
+                "Ref": "AWS::AccountId"
+              },
+              ":",
+              {
+                "Ref": "PdfAudiobookApiA4263288"
+              },
+              "/*/*/upload"
+            ]
+          ]
+        }
+      }
+    },
+    "PdfAudiobookApiPOSTupload34A0D361": {
+      "Type": "AWS::ApiGatewayV2::Route",
+      "Properties": {
+        "ApiId": {
+          "Ref": "PdfAudiobookApiA4263288"
+        },
+        "AuthorizationType": "NONE",
+        "RouteKey": "POST /upload",
+        "Target": {
+          "Fn::Join": [
+            "",
+            [
+              "integrations/",
+              {
+                "Ref": "PdfAudiobookApiPOSTuploadApiIntegrationAD2B5766"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    "PdfAudiobookApiGETjobidApiIntegrationPermission942A1A9C": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "ApiFunctionCE271BD4",
+            "Arn"
+          ]
+        },
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition"
+              },
+              ":execute-api:",
+              {
+                "Ref": "AWS::Region"
+              },
+              ":",
+              {
+                "Ref": "AWS::AccountId"
+              },
+              ":",
+              {
+                "Ref": "PdfAudiobookApiA4263288"
+              },
+              "/*/*/job/{id}"
+            ]
+          ]
+        }
+      }
+    },
+    "PdfAudiobookApiGETjobid7AAAC317": {
+      "Type": "AWS::ApiGatewayV2::Route",
+      "Properties": {
+        "ApiId": {
+          "Ref": "PdfAudiobookApiA4263288"
+        },
+        "AuthorizationType": "NONE",
+        "RouteKey": "GET /job/{id}",
+        "Target": {
+          "Fn::Join": [
+            "",
+            [
+              "integrations/",
+              {
+                "Ref": "PdfAudiobookApiPOSTuploadApiIntegrationAD2B5766"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    "PdfAudiobookApiPOSTjobidbeatsbeatidapproveApiIntegrationPermission83E9FE33": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "ApiFunctionCE271BD4",
+            "Arn"
+          ]
+        },
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition"
+              },
+              ":execute-api:",
+              {
+                "Ref": "AWS::Region"
+              },
+              ":",
+              {
+                "Ref": "AWS::AccountId"
+              },
+              ":",
+              {
+                "Ref": "PdfAudiobookApiA4263288"
+              },
+              "/*/*/job/{id}/beats/{beat_id}/approve"
+            ]
+          ]
+        }
+      }
+    },
+    "PdfAudiobookApiPOSTjobidbeatsbeatidapprove7A0AEE80": {
+      "Type": "AWS::ApiGatewayV2::Route",
+      "Properties": {
+        "ApiId": {
+          "Ref": "PdfAudiobookApiA4263288"
+        },
+        "AuthorizationType": "NONE",
+        "RouteKey": "POST /job/{id}/beats/{beat_id}/approve",
+        "Target": {
+          "Fn::Join": [
+            "",
+            [
+              "integrations/",
+              {
+                "Ref": "PdfAudiobookApiPOSTuploadApiIntegrationAD2B5766"
+              }
+            ]
+          ]
+        }
+      }
+    }
+  },
+  "Outputs": {
+    "ApiUrl": {
+      "Description": "API Gateway URL",
+      "Value": {
+        "Fn::Join": [
+          "",
+          [
+            "https://",
+            {
+              "Ref": "PdfAudiobookApiA4263288"
+            },
+            ".execute-api.",
+            {
+              "Ref": "AWS::Region"
+            },
+            ".",
+            {
+              "Ref": "AWS::URLSuffix"
+            },
+            "/"
+          ]
+        ]
+      }
+    },
+    "StateMachineArn": {
+      "Description": "Step Functions State Machine ARN",
+      "Value": {
+        "Ref": "OrchestratorStateMachine3134990F"
+      }
+    }
+  },
+  "Parameters": {
+    "BootstrapVersion": {
+      "Type": "AWS::SSM::Parameter::Value<String>",
+      "Default": "/cdk-bootstrap/hnb659fds/version",
+      "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]"
+    }
+  },
+  "Rules": {
+    "CheckBootstrapVersion": {
+      "Assertions": [
+        {
+          "Assert": {
+            "Fn::Not": [
+              {
+                "Fn::Contains": [
+                  [
+                    "1",
+                    "2",
+                    "3",
+                    "4",
+                    "5"
+                  ],
+                  {
+                    "Ref": "BootstrapVersion"
+                  }
+                ]
+              }
+            ]
+          },
+          "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI."
+        }
+      ]
+    }
+  }
+}

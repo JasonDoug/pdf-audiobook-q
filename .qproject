@@ -1,0 +1,15 @@
+name: pdf-audiobook-pipeline
+language: python
+preferred_iac: cdk          # "cdk" or "terraform" - you can change to "terraform" if you prefer
+deploy_target: aws
+tasks:
+  - id: scaffold_infra
+    description: "Generate infra: S3, DynamoDB, StepFunctions, Lambda skeletons, API Gateway, IAM roles."
+  - id: build_lambdas
+    description: "Create Lambda code for ingest, extract_text, extract_figures, create_beats, llm_orchestrator, verify_scripts, tts_adapter, finalize. Add unit tests for core logic."
+  - id: build_frontend
+    description: "Scaffold React frontend with upload page, beats review page, and player page. Connect to API endpoints."
+  - id: ci_cd
+    description: "Create GitHub Actions including terraform/cdk plan and apply (with manual approval for apply). Add unit test steps."
+  - id: docs_and_tests
+    description: "Create README, architecture diagram, and an E2E test plan using sample PDFs."

@@ -1,0 +1,494 @@
+{
+  "Resources": {
+    "LambdaExecutionRoleD5C26073": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com"
+              }
+            }
+          ],
+          "Version": "2012-10-17"
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition"
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+              ]
+            ]
+          }
+        ],
+        "Policies": [
+          {
+            "PolicyDocument": {
+              "Statement": [
+                {
+                  "Action": [
+                    "s3:GetObject",
+                    "s3:PutObject"
+                  ],
+                  "Effect": "Allow",
+                  "Resource": {
+                    "Fn::Join": [
+                      "",
+                      [
+                        {
+                          "Fn::ImportValue": "PdfAudiobookCoreStack:ExportsOutputFnGetAttIngestBucket2B3522FAArn3BA698B8"
+                        },
+                        "/*"
+                      ]
+                    ]
+                  }
+                }
+              ],
+              "Version": "2012-10-17"
+            },
+            "PolicyName": "S3Access"
+          },
+          {
+            "PolicyDocument": {
+              "Statement": [
+                {
+                  "Action": [
+                    "dynamodb:GetItem",
+                    "dynamodb:PutItem",
+                    "dynamodb:UpdateItem"
+                  ],
+                  "Effect": "Allow",
+                  "Resource": {
+                    "Fn::ImportValue": "PdfAudiobookCoreStack:ExportsOutputFnGetAttJobsTable1970BC16ArnC40C1624"
+                  }
+                }
+              ],
+              "Version": "2012-10-17"
+            },
+            "PolicyName": "DynamoDBAccess"
+          },
+          {
+            "PolicyDocument": {
+              "Statement": [
+                {
+                  "Action": [
+                    "states:SendTaskSuccess",
+                    "states:SendTaskFailure"
+                  ],
+                  "Effect": "Allow",
+                  "Resource": "*"
+                }
+              ],
+              "Version": "2012-10-17"
+            },
+            "PolicyName": "StepFunctionsAccess"
+          }
+        ]
+      }
+    },
+    "ExtractTextFunctionEEC7C314": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "ZipFile": "\ndef handler(event, context):\n    print(f\"ExtractText function called with event: {event}\")\n    return {\"statusCode\": 200, \"body\": \"Success\"}\n        "
+        },
+        "Environment": {
+          "Variables": {
+            "BUCKET_NAME": {
+              "Fn::ImportValue": "PdfAudiobookCoreStack:ExportsOutputRefIngestBucket2B3522FAA83ACC7F"
+            },
+            "TABLE_NAME": {
+              "Fn::ImportValue": "PdfAudiobookCoreStack:ExportsOutputRefJobsTable1970BC16EDB4A824"
+            }
+          }
+        },
+        "Handler": "index.handler",
+        "Role": {
+          "Fn::GetAtt": [
+            "LambdaExecutionRoleD5C26073",
+            "Arn"
+          ]
+        },
+        "Runtime": "python3.9"
+      },
+      "DependsOn": [
+        "LambdaExecutionRoleD5C26073"
+      ]
+    },
+    "ExtractFiguresFunction15AC969B": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "ZipFile": "\ndef handler(event, context):\n    print(f\"ExtractFigures function called with event: {event}\")\n    return {\"statusCode\": 200, \"body\": \"Success\"}\n        "
+        },
+        "Environment": {
+          "Variables": {
+            "BUCKET_NAME": {
+              "Fn::ImportValue": "PdfAudiobookCoreStack:ExportsOutputRefIngestBucket2B3522FAA83ACC7F"
+            },
+            "TABLE_NAME": {
+              "Fn::ImportValue": "PdfAudiobookCoreStack:ExportsOutputRefJobsTable1970BC16EDB4A824"
+            }
+          }
+        },
+        "Handler": "index.handler",
+        "Role": {
+          "Fn::GetAtt": [
+            "LambdaExecutionRoleD5C26073",
+            "Arn"
+          ]
+        },
+        "Runtime": "python3.9"
+      },
+      "DependsOn": [
+        "LambdaExecutionRoleD5C26073"
+      ]
+    },
+    "SemanticSegmentationFunctionCBB65BDA": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "ZipFile": "\ndef handler(event, context):\n    print(f\"SemanticSegmentation function called with event: {event}\")\n    return {\"statusCode\": 200, \"body\": \"Success\"}\n        "
+        },
+        "Environment": {
+          "Variables": {
+            "BUCKET_NAME": {
+              "Fn::ImportValue": "PdfAudiobookCoreStack:ExportsOutputRefIngestBucket2B3522FAA83ACC7F"
+            },
+            "TABLE_NAME": {
+              "Fn::ImportValue": "PdfAudiobookCoreStack:ExportsOutputRefJobsTable1970BC16EDB4A824"
+            }
+          }
+        },
+        "Handler": "index.handler",
+        "Role": {
+          "Fn::GetAtt": [
+            "LambdaExecutionRoleD5C26073",
+            "Arn"
+          ]
+        },
+        "Runtime": "python3.9"
+      },
+      "DependsOn": [
+        "LambdaExecutionRoleD5C26073"
+      ]
+    },
+    "BeatSynthesisFunction152DB3F5": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "ZipFile": "\ndef handler(event, context):\n    print(f\"BeatSynthesis function called with event: {event}\")\n    return {\"statusCode\": 200, \"body\": \"Success\"}\n        "
+        },
+        "Environment": {
+          "Variables": {
+            "BUCKET_NAME": {
+              "Fn::ImportValue": "PdfAudiobookCoreStack:ExportsOutputRefIngestBucket2B3522FAA83ACC7F"
+            },
+            "TABLE_NAME": {
+              "Fn::ImportValue": "PdfAudiobookCoreStack:ExportsOutputRefJobsTable1970BC16EDB4A824"
+            }
+          }
+        },
+        "Handler": "index.handler",
+        "Role": {
+          "Fn::GetAtt": [
+            "LambdaExecutionRoleD5C26073",
+            "Arn"
+          ]
+        },
+        "Runtime": "python3.9"
+      },
+      "DependsOn": [
+        "LambdaExecutionRoleD5C26073"
+      ]
+    },
+    "UserApprovalFunction5A038BB5": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "ZipFile": "\ndef handler(event, context):\n    print(f\"UserApproval function called with event: {event}\")\n    return {\"statusCode\": 200, \"body\": \"Success\"}\n        "
+        },
+        "Environment": {
+          "Variables": {
+            "BUCKET_NAME": {
+              "Fn::ImportValue": "PdfAudiobookCoreStack:ExportsOutputRefIngestBucket2B3522FAA83ACC7F"
+            },
+            "TABLE_NAME": {
+              "Fn::ImportValue": "PdfAudiobookCoreStack:ExportsOutputRefJobsTable1970BC16EDB4A824"
+            }
+          }
+        },
+        "Handler": "index.handler",
+        "Role": {
+          "Fn::GetAtt": [
+            "LambdaExecutionRoleD5C26073",
+            "Arn"
+          ]
+        },
+        "Runtime": "python3.9"
+      },
+      "DependsOn": [
+        "LambdaExecutionRoleD5C26073"
+      ]
+    },
+    "GenerateLectureScriptFunction665C6FE0": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "ZipFile": "\ndef handler(event, context):\n    print(f\"GenerateLectureScript function called with event: {event}\")\n    return {\"statusCode\": 200, \"body\": \"Success\"}\n        "
+        },
+        "Environment": {
+          "Variables": {
+            "BUCKET_NAME": {
+              "Fn::ImportValue": "PdfAudiobookCoreStack:ExportsOutputRefIngestBucket2B3522FAA83ACC7F"
+            },
+            "TABLE_NAME": {
+              "Fn::ImportValue": "PdfAudiobookCoreStack:ExportsOutputRefJobsTable1970BC16EDB4A824"
+            }
+          }
+        },
+        "Handler": "index.handler",
+        "Role": {
+          "Fn::GetAtt": [
+            "LambdaExecutionRoleD5C26073",
+            "Arn"
+          ]
+        },
+        "Runtime": "python3.9"
+      },
+      "DependsOn": [
+        "LambdaExecutionRoleD5C26073"
+      ]
+    },
+    "VerifyScriptsFunctionBD9C1612": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "ZipFile": "\ndef handler(event, context):\n    print(f\"VerifyScripts function called with event: {event}\")\n    return {\"statusCode\": 200, \"body\": \"Success\"}\n        "
+        },
+        "Environment": {
+          "Variables": {
+            "BUCKET_NAME": {
+              "Fn::ImportValue": "PdfAudiobookCoreStack:ExportsOutputRefIngestBucket2B3522FAA83ACC7F"
+            },
+            "TABLE_NAME": {
+              "Fn::ImportValue": "PdfAudiobookCoreStack:ExportsOutputRefJobsTable1970BC16EDB4A824"
+            }
+          }
+        },
+        "Handler": "index.handler",
+        "Role": {
+          "Fn::GetAtt": [
+            "LambdaExecutionRoleD5C26073",
+            "Arn"
+          ]
+        },
+        "Runtime": "python3.9"
+      },
+      "DependsOn": [
+        "LambdaExecutionRoleD5C26073"
+      ]
+    },
+    "SynthesizeAudioFunction7BF115C2": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "ZipFile": "\ndef handler(event, context):\n    print(f\"SynthesizeAudio function called with event: {event}\")\n    return {\"statusCode\": 200, \"body\": \"Success\"}\n        "
+        },
+        "Environment": {
+          "Variables": {
+            "BUCKET_NAME": {
+              "Fn::ImportValue": "PdfAudiobookCoreStack:ExportsOutputRefIngestBucket2B3522FAA83ACC7F"
+            },
+            "TABLE_NAME": {
+              "Fn::ImportValue": "PdfAudiobookCoreStack:ExportsOutputRefJobsTable1970BC16EDB4A824"
+            }
+          }
+        },
+        "Handler": "index.handler",
+        "Role": {
+          "Fn::GetAtt": [
+            "LambdaExecutionRoleD5C26073",
+            "Arn"
+          ]
+        },
+        "Runtime": "python3.9"
+      },
+      "DependsOn": [
+        "LambdaExecutionRoleD5C26073"
+      ]
+    },
+    "FinalizeFunction2E2E0FC2": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "ZipFile": "\ndef handler(event, context):\n    print(f\"Finalize function called with event: {event}\")\n    return {\"statusCode\": 200, \"body\": \"Success\"}\n        "
+        },
+        "Environment": {
+          "Variables": {
+            "BUCKET_NAME": {
+              "Fn::ImportValue": "PdfAudiobookCoreStack:ExportsOutputRefIngestBucket2B3522FAA83ACC7F"
+            },
+            "TABLE_NAME": {
+              "Fn::ImportValue": "PdfAudiobookCoreStack:ExportsOutputRefJobsTable1970BC16EDB4A824"
+            }
+          }
+        },
+        "Handler": "index.handler",
+        "Role": {
+          "Fn::GetAtt": [
+            "LambdaExecutionRoleD5C26073",
+            "Arn"
+          ]
+        },
+        "Runtime": "python3.9"
+      },
+      "DependsOn": [
+        "LambdaExecutionRoleD5C26073"
+      ]
+    }
+  },
+  "Outputs": {
+    "ExportsOutputFnGetAttExtractTextFunctionEEC7C314Arn1754CBE0": {
+      "Value": {
+        "Fn::GetAtt": [
+          "ExtractTextFunctionEEC7C314",
+          "Arn"
+        ]
+      },
+      "Export": {
+        "Name": "PdfAudiobookLambdaStack:ExportsOutputFnGetAttExtractTextFunctionEEC7C314Arn1754CBE0"
+      }
+    },
+    "ExportsOutputFnGetAttExtractFiguresFunction15AC969BArn7345BA59": {
+      "Value": {
+        "Fn::GetAtt": [
+          "ExtractFiguresFunction15AC969B",
+          "Arn"
+        ]
+      },
+      "Export": {
+        "Name": "PdfAudiobookLambdaStack:ExportsOutputFnGetAttExtractFiguresFunction15AC969BArn7345BA59"
+      }
+    },
+    "ExportsOutputFnGetAttSemanticSegmentationFunctionCBB65BDAArn9F9EAE65": {
+      "Value": {
+        "Fn::GetAtt": [
+          "SemanticSegmentationFunctionCBB65BDA",
+          "Arn"
+        ]
+      },
+      "Export": {
+        "Name": "PdfAudiobookLambdaStack:ExportsOutputFnGetAttSemanticSegmentationFunctionCBB65BDAArn9F9EAE65"
+      }
+    },
+    "ExportsOutputFnGetAttBeatSynthesisFunction152DB3F5ArnEA07FD2B": {
+      "Value": {
+        "Fn::GetAtt": [
+          "BeatSynthesisFunction152DB3F5",
+          "Arn"
+        ]
+      },
+      "Export": {
+        "Name": "PdfAudiobookLambdaStack:ExportsOutputFnGetAttBeatSynthesisFunction152DB3F5ArnEA07FD2B"
+      }
+    },
+    "ExportsOutputFnGetAttUserApprovalFunction5A038BB5ArnA514109B": {
+      "Value": {
+        "Fn::GetAtt": [
+          "UserApprovalFunction5A038BB5",
+          "Arn"
+        ]
+      },
+      "Export": {
+        "Name": "PdfAudiobookLambdaStack:ExportsOutputFnGetAttUserApprovalFunction5A038BB5ArnA514109B"
+      }
+    },
+    "ExportsOutputFnGetAttGenerateLectureScriptFunction665C6FE0Arn3A9D4FFB": {
+      "Value": {
+        "Fn::GetAtt": [
+          "GenerateLectureScriptFunction665C6FE0",
+          "Arn"
+        ]
+      },
+      "Export": {
+        "Name": "PdfAudiobookLambdaStack:ExportsOutputFnGetAttGenerateLectureScriptFunction665C6FE0Arn3A9D4FFB"
+      }
+    },
+    "ExportsOutputFnGetAttVerifyScriptsFunctionBD9C1612Arn7878793C": {
+      "Value": {
+        "Fn::GetAtt": [
+          "VerifyScriptsFunctionBD9C1612",
+          "Arn"
+        ]
+      },
+      "Export": {
+        "Name": "PdfAudiobookLambdaStack:ExportsOutputFnGetAttVerifyScriptsFunctionBD9C1612Arn7878793C"
+      }
+    },
+    "ExportsOutputFnGetAttSynthesizeAudioFunction7BF115C2Arn85E77FA5": {
+      "Value": {
+        "Fn::GetAtt": [
+          "SynthesizeAudioFunction7BF115C2",
+          "Arn"
+        ]
+      },
+      "Export": {
+        "Name": "PdfAudiobookLambdaStack:ExportsOutputFnGetAttSynthesizeAudioFunction7BF115C2Arn85E77FA5"
+      }
+    },
+    "ExportsOutputFnGetAttFinalizeFunction2E2E0FC2Arn7153F5BA": {
+      "Value": {
+        "Fn::GetAtt": [
+          "FinalizeFunction2E2E0FC2",
+          "Arn"
+        ]
+      },
+      "Export": {
+        "Name": "PdfAudiobookLambdaStack:ExportsOutputFnGetAttFinalizeFunction2E2E0FC2Arn7153F5BA"
+      }
+    }
+  },
+  "Parameters": {
+    "BootstrapVersion": {
+      "Type": "AWS::SSM::Parameter::Value<String>",
+      "Default": "/cdk-bootstrap/hnb659fds/version",
+      "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]"
+    }
+  },
+  "Rules": {
+    "CheckBootstrapVersion": {
+      "Assertions": [
+        {
+          "Assert": {
+            "Fn::Not": [
+              {
+                "Fn::Contains": [
+                  [
+                    "1",
+                    "2",
+                    "3",
+                    "4",
+                    "5"
+                  ],
+                  {
+                    "Ref": "BootstrapVersion"
+                  }
+                ]
+              }
+            ]
+          },
+          "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI."
+        }
+      ]
+    }
+  }
+}
